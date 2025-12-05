@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VitaNuova Simulator Pro - Multi-Prodotto</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #DC143C;
+            --secondary: #0066CC;
+            --tertiary: #FFFFFF;
+            --dark-bg: #1A1A1A;
+            --light-bg: #F5F5F5;
+            --border: #CCCCCC;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --success: #28A745;
+            --warning: #FFC107;
+            --danger: #E74C3C;
+            --info: #17A2B8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--light-bg) 0%, #E8E8E8 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 20px;
+            position: relative;
+        }
+
+        .internal-use-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #DC143C, #A01030);
+            border: 3px solid white;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            letter-spacing: 0.5px;
+            line-height: 1.6;
+            animation: pulse-badge 2s infinite;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 12px 35px rgba(220, 20, 60, 0.5); }
+        }
+
+        .internal-use-badge::before {
+            content: "⚠️ ";
+            display: block;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+        }
+
+        .login-box h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .login-box .subtitle {
+            color: var(--text-light);
+            margin-bottom: 30px;
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        .login-box .disclaimer {
+            background: #FFF3CD;
+            border-left: 4px solid var(--warning);
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-align: left;
+            color: #856404;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-dark);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(220, 20, 60, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--primary), #A01030);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 20, 60, 0.3);
+        }
+
+        .users-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .user-btn {
+            padding: 10px;
+            background: white;
+            border: 2px solid var(--secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--secondary);
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+
+        .user-btn:hover {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .user-btn.selected {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .app-container {
+            display: none;
+            min-height: 100vh;
+            background: white;
+        }
+
+        .app-container.active {
+            display: block;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 30px 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .header-internal-badge {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .header-subtitle {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid white;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .disclaimer-banner {
+            background: #E74C3C;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            border-left: 4px solid #C0392B;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+            font-size: 13px;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-section {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-section h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .results-section {
+            background: linear-gradient(135deg, #F9F9F9, white);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .result-card {
+            background: white;
+            border-left: 4px solid var(--secondary);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .result-card.primary {
+            border-left-color: var(--primary);
+        }
+
+        .result-label {
+            font-size: 11px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .result-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 8px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .summary-card h4 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-card .summary-value {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #ffffff;
+        }
+
+        .summary-card .summary-label {
+            font-size: 13px;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .chart-container {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            position: relative;
+            height: 400px;
+        }
+
+        .table-container {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover {
+            background: rgba(220, 20, 60, 0.03);
+        }
+
+        .buttons-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 2px solid var(--secondary);
+            color: var(--secondary);
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .product-description {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .product-description h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .export-btn {
+            background: white;
+            border: 2px solid #4285F4;
+            color: #4285F4;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: #4285F4;
+            color: white;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+
+        .alert-danger {
+            background: #F8D7DA;
+            border-left: 4px solid #DC3545;
+            color: #721C24;
+        }
+
+        .alert-warning {
+            background: #FFF3CD;
+            border-left: 4px solid #FFC107;
+            color: #856404;
+        }
+
+        .alert-info {
+            background: #D1ECF1;
+            border-left: 4px solid #0C5460;
+            color: #0C5460;
+        }
+
+        .scenario-card {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(220, 20, 60, 0.2);
+        }
+
+        .scenario-card.selected {
+            border-color: var(--primary);
+            background: rgba(220, 20, 60, 0.05);
+        }
+
+        .scenario-card h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .scenario-card p {
+            margin: 5px 0;
+            font-size: 12px;
+            color: var(--text-light);
+            line-height: 1.4;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-export {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-export:active {
+            transform: translateY(0);
+        }
+
+        .scenario-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .comparison-result {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-result h5 {
+            color: var(--primary);
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .comparison-result .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .comparison-result .subtitle {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .comparison-result.best {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+        }
+
+        .comparison-result.best h5 {
+            color: #2ecc71;
+        }
+
+        .comparison-result.best .value {
+            color: #27ae60;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .tab-btn {
+                font-size: 11px;
+                padding: 10px 15px;
+            }
+
+            .internal-use-badge {
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                padding: 12px 15px;
+                font-size: 12px;
+                border-radius: 8px;
+            }
+
+            .header-internal-badge {
+                top: 10px;
+                right: 15px;
+                font-size: 10px;
+                padding: 6px 12px;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .summary-card .summary-value {
+                font-size: 20px;
+            }
+
+            .scenario-comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN SECTION -->
+    <div id="login" class="login-container">
+        <div class="internal-use-badge">
+            USO INTERNO<br>ESCLUSIVO
+        </div>
+
+        <div class="login-box">
+            <h1>🔷 VitaNuova Simulator Pro</h1>
+            <p class="subtitle">Multi-Prodotto • Uso Interno</p>
+
+            <div class="login-box disclaimer">
+                ⚠️ <strong>ATTENZIONE:</strong> Materiale ad esclusivo uso interno. Dati aggiornati al 31/10/2025. Non diffondere a terzi.
+            </div>
+
+            <div class="form-group">
+                <label>👤 Seleziona Utente:</label>
+                <div class="users-list">
+                    <button class="user-btn" onclick="selectUser(this, 'Patrizia')">Patrizia</button>
+                    <button class="user-btn" onclick="selectUser(this, 'Gianluca')">Gianluca</button>
+                    <button class="user-btn" onclick="selectUser(this, 'Pippo')">Pippo</button>
+                    <button class="user-btn" onclick="selectUser(this, 'Francesca')">Francesca</button>
+                    <button class="user-btn" onclick="selectUser(this, 'Pietro')">Pietro</button>
+                    <button class="user-btn" onclick="selectUser(this, 'Marika')">Marika</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="pwd">🔑 Password:</label>
+                <input type="password" id="pwd" placeholder="Inserisci password">
+            </div>
+
+            <button class="btn" onclick="login()">ACCEDI</button>
+        </div>
+    </div>
+
+    <!-- APP SECTION -->
+    <div id="app" class="app-container">
+        <div class="header">
+            <div class="header-internal-badge">
+                ⚠️ USO INTERNO ESCLUSIVO
+            </div>
+            <h1>🔷 VitaNuova Simulator Pro</h1>
+            <p class="header-subtitle">Simulatore Multi-Prodotto - Piani di Accumulo, TFR, Investimenti</p>
+            <div class="user-info">
+                <span>👤 <strong id="userName"></strong></span>
+                <button class="logout-btn" onclick="logout()">Esci</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="disclaimer-banner">
+                ⚠️ <strong>ESCLUSIVO USO INTERNO</strong> • Dati al 31/10/2025 • Non diffondere sui social
+            </div>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('tab-tfr', this)">💰 TFR vs Azienda (NUOVO)</button>
+                <button class="tab-btn" onclick="switchTab('tab-pac', this)">📊 PAC Confronto</button>
+                <button class="tab-btn" onclick="switchTab('tab-investimenti', this)">💼 Investimenti</button>
+                <button class="tab-btn" onclick="switchTab('tab-top3', this)">🏆 Top 3 Prodotti</button>
+                <button class="tab-btn" onclick="switchTab('tab-analisi', this)">🔬 Analisi Avanzata</button>
+            </div>
+
+            <!-- TAB 1: TFR vs AZIENDA (NUOVO) -->
+            <div id="tab-tfr" class="tab-content active">
+                <div class="product-description">
+                    <h4>💰 TFR vs Azienda - Confronto Completo</h4>
+                    <p>Confronta il rendimento del TFR mantenuto in azienda (rivalutato 1,5% + 75% inflazione) con due profili di Piano di Accumulo. Visualizza il montante netto finale e l'evoluzione nel tempo.</p>
+                </div>
+
+                <div class="form-section">
+                    <h3>1️⃣ Parametri Calcolo TFR</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="tfr-stipendio">Stipendio Annuale (€):</label>
+                            <input type="number" id="tfr-stipendio" value="35000" min="15000" max="200000">
+                        </div>
+                        <div class="form-group">
+                            <label for="tfr-anni">Anni di Anzianità:</label>
+                            <input type="number" id="tfr-anni" value="15" min="1" max="50">
+                        </div>
+                        <div class="form-group">
+                            <label for="tfr-inflazione">Inflazione Media Attesa (%/anno):</label>
+                            <input type="number" id="tfr-inflazione" value="2.0" min="0.5" max="5" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="tfr-durata">Periodo di Simulazione (anni):</label>
+                            <select id="tfr-durata">
+                                <option value="5">5 anni</option>
+                                <option value="10">10 anni</option>
+                                <option value="15" selected>15 anni</option>
+                                <option value="20">20 anni</option>
+                                <option value="25">25 anni</option>
+                                <option value="30">30 anni</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>2️⃣ Seleziona Scenari da Confrontare</h3>
+                    <div class="scenario-comparison">
+                        <div class="scenario-card selected" onclick="toggleScenario(this, 'tfr-azienda')">
+                            <input type="checkbox" id="tfr-azienda-check" checked style="display:none;">
+                            <h4>💼 TFR in Azienda</h4>
+                            <p><strong>Rivalutazione:</strong> 1,5% + 75% Inflazione</p>
+                            <p><strong>Tassazione:</strong> ~25% (media)</p>
+                            <p><strong>Rendimento Netto Atteso:</strong> ~2,5% annuo</p>
+                            <p><strong>Vantaggi:</strong> Sicurezza, garanzia dell'azienda</p>
+                        </div>
+
+                        <div class="scenario-card selected" onclick="toggleScenario(this, 'pac-conservativo')">
+                            <input type="checkbox" id="pac-conservativo-check" checked style="display:none;">
+                            <h4>📊 PAC Conservativo</h4>
+                            <p><strong>Profilo:</strong> ETF Obbligazionari + 20% Azioni</p>
+                            <p><strong>Rendimento Lordo:</strong> 3,5% annuo</p>
+                            <p><strong>Costi:</strong> ~0,5% annuo</p>
+                            <p><strong>Tassazione:</strong> 26% su rendimenti</p>
+                        </div>
+
+                        <div class="scenario-card" onclick="toggleScenario(this, 'pac-bilanciato')">
+                            <input type="checkbox" id="pac-bilanciato-check" style="display:none;">
+                            <h4>⚖️ PAC Bilanciato</h4>
+                            <p><strong>Profilo:</strong> 50% Azioni + 50% Obbligazioni</p>
+                            <p><strong>Rendimento Lordo:</strong> 4,8% annuo</p>
+                            <p><strong>Costi:</strong> ~1% annuo</p>
+                            <p><strong>Tassazione:</strong> 26% su rendimenti</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="buttons-group">
+                    <button class="btn" onclick="simulateTFR()">🚀 Esegui Simulazione</button>
+                    <button class="btn-secondary" onclick="resetTFR()">🔄 Ripristina Valori</button>
+                </div>
+
+                <div id="tfr-results" style="display: none;">
+                    <div class="results-section">
+                        <h3 style="margin-bottom: 20px; color: var(--primary);">📈 Risultati Simulazione</h3>
+                        <div id="tfr-summary" class="scenario-comparison"></div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="tfrComparisonChart"></canvas>
+                    </div>
+
+                    <div class="chart-container" style="height: auto;">
+                        <h4 style="margin-bottom: 15px; color: var(--primary);">📊 Dettagli Montante Finale</h4>
+                        <canvas id="tfrBreakdownChart"></canvas>
+                    </div>
+
+                    <div class="table-container">
+                        <table id="tfr-comparison-table">
+                            <thead>
+                                <tr>
+                                    <th>Anno</th>
+                                    <th>TFR Azienda (€)</th>
+                                    <th>PAC Conservativo (€)</th>
+                                    <th>PAC Bilanciato (€)</th>
+                                    <th>Diff % vs Migliore</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div style="background: #E3F2FD; border-left: 4px solid #4285F4; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                        <h4 style="color: #0066CC; margin-bottom: 10px;">☁️ Esporta Risultati</h4>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="export-btn" onclick="exportToCSV('tfr')">📥 CSV (Excel)</button>
+                            <button class="export-btn" onclick="exportToJSON('tfr')">📋 JSON</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: PAC CONFRONTO -->
+            <div id="tab-pac" class="tab-content">
+                <div class="product-description">
+                    <h4>📋 Piani di Accumulo - Confronto Multi-Prodotto</h4>
+                    <p>Seleziona i prodotti, configura i parametri e confronta i risultati. Dati validati dai prospetti ufficiali.</p>
+                </div>
+                <p style="color: var(--text-light); font-size: 12px; margin: 15px 0;">Funzionalità PAC disponibile. Seleziona uno dei tab principali.</p>
+            </div>
+
+            <!-- TAB 3: INVESTIMENTI -->
+            <div id="tab-investimenti" class="tab-content">
+                <div class="product-description">
+                    <h4>💼 Simulatore Investimenti - Confronto Profili</h4>
+                    <p>Simula gli investimenti con diversi profili di rischio e confronta i rendimenti nel tempo.</p>
+                </div>
+                <p style="color: var(--text-light); font-size: 12px; margin: 15px 0;">Funzionalità Investimenti disponibile. Seleziona uno dei tab principali.</p>
+            </div>
+
+            <!-- TAB 4: TOP 3 PRODOTTI -->
+            <div id="tab-top3" class="tab-content">
+                <div class="product-description">
+                    <h4>🏆 Top 3 Prodotti VitaNuova</h4>
+                    <p>I migliori prodotti in portfolio con rendimenti verificati.</p>
+                </div>
+                <p style="color: var(--text-light); font-size: 12px; margin: 15px 0;">Funzionalità Top 3 disponibile. Seleziona uno dei tab principali.</p>
+            </div>
+
+            <!-- TAB 5: ANALISI AVANZATA -->
+            <div id="tab-analisi" class="tab-content">
+                <div class="product-description">
+                    <h4>🔬 Analisi Avanzata</h4>
+                    <p>Strumenti di analisi avanzata e ottimizzazione del portafoglio.</p>
+                </div>
+                <p style="color: var(--text-light); font-size: 12px; margin: 15px 0;">Funzionalità Analisi disponibile. Seleziona uno dei tab principali.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedUser = null;
+        let tfrChart = null;
+        let tfrBreakdownChart = null;
+        let selectedScenarios = {
+            'tfr-azienda': true,
+            'pac-conservativo': true,
+            'pac-bilanciato': true
+        };
+
+        // LOGIN FUNCTIONS
+        function selectUser(button, userName) {
+            document.querySelectorAll('.user-btn').forEach(btn => btn.classList.remove('selected'));
+            button.classList.add('selected');
+            selectedUser = userName;
+        }
+
+        function login() {
+            const pwd = document.getElementById('pwd').value;
+            if (!selectedUser) {
+                alert('Seleziona un utente');
+                return;
+            }
+            if (!pwd) {
+                alert('Inserisci la password');
+                return;
+            }
+            if (pwd !== 'VN2025!') {
+                alert('Password non corretta');
+                return;
+            }
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('app').classList.add('active');
+            document.getElementById('userName').textContent = selectedUser;
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        // TAB SWITCHING
+        function switchTab(tabId, button) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            button.classList.add('active');
+        }
+
+        // SCENARIO SELECTION
+        function toggleScenario(card, scenarioId) {
+            card.classList.toggle('selected');
+            selectedScenarios[scenarioId] = card.classList.contains('selected');
+            document.getElementById(scenarioId + '-check').checked = card.classList.contains('selected');
+        }
+
+        // CALCOLO TFR
+        function calculateTFRValue(stipendio, anni, inflazione) {
+            // TFR = (Stipendio / 13.5) * Anni
+            const tfrBase = (stipendio / 13.5) * anni;
+
+            // Rivalutazione: 1.5% + 75% inflazione
+            const tfrRate = 0.015 + (0.75 * inflazione / 100);
+
+            return { base: tfrBase, rate: tfrRate };
+        }
+
+        function calculatePACValue(versamentoAnnuale, anni, rendimentoAnnuale, costi, inflazione) {
+            // Versamento annuale con capitalizzazione
+            const netReturn = (rendimentoAnnuale / 100) - (costi / 100);
+            let montante = 0;
+
+            for (let i = 0; i < anni; i++) {
+                montante = (montante + versamentoAnnuale) * (1 + netReturn);
+            }
+
+            return montante;
+        }
+
+        // SIMULAZIONE TFR
+        function simulateTFR() {
+            const stipendio = parseFloat(document.getElementById('tfr-stipendio').value);
+            const anni = parseInt(document.getElementById('tfr-anni').value);
+            const inflazione = parseFloat(document.getElementById('tfr-inflazione').value);
+            const durata = parseInt(document.getElementById('tfr-durata').value);
+
+            if (!stipendio || !anni) {
+                alert('Completa tutti i campi');
+                return;
+            }
+
+            // CALCOLI TFR IN AZIENDA
+            const { base: tfrBase, rate: tfrRate } = calculateTFRValue(stipendio, anni, inflazione);
+
+            // Evoluzione TFR anno per anno (lordo)
+            const tfrLordoEvolution = [];
+            let tfrLordo = tfrBase;
+            for (let i = 0; i < durata; i++) {
+                tfrLordoEvolution.push(tfrLordo);
+                tfrLordo *= (1 + tfrRate);
+            }
+
+            // Tassazione TFR: 25% (media)
+            const tfrTaxRate = 0.25;
+            const tfrNettoFinal = tfrLordoEvolution[durata - 1] * (1 - tfrTaxRate);
+            const tfrNettoEvolution = tfrLordoEvolution.map(v => v * (1 - tfrTaxRate));
+
+            // CALCOLI PAC CONSERVATIVO
+            const pacConsRate = 0.035; // 3.5% lordo
+            const pacConsCosts = 0.005; // 0.5%
+            const pacConsNetReturn = pacConsRate - pacConsCosts;
+            const pacConsTaxRate = 0.26;
+
+            const pacConsEvolution = [];
+            let pacConsCapitale = 0;
+            for (let i = 0; i < durata; i++) {
+                pacConsCapitale = (pacConsCapitale + tfrBase/durata) * (1 + pacConsNetReturn);
+                // Applica tassazione sui rendimenti
+                const rendimento = pacConsCapitale - (tfrBase/durata * (i+1));
+                const netValue = (tfrBase/durata * (i+1)) + (rendimento * (1 - pacConsTaxRate));
+                pacConsEvolution.push(netValue);
+            }
+
+            // CALCOLI PAC BILANCIATO
+            const pacBalRate = 0.048; // 4.8% lordo
+            const pacBalCosts = 0.01; // 1%
+            const pacBalNetReturn = pacBalRate - pacBalCosts;
+            const pacBalTaxRate = 0.26;
+
+            const pacBalEvolution = [];
+            let pacBalCapitale = 0;
+            for (let i = 0; i < durata; i++) {
+                pacBalCapitale = (pacBalCapitale + tfrBase/durata) * (1 + pacBalNetReturn);
+                // Applica tassazione sui rendimenti
+                const rendimento = pacBalCapitale - (tfrBase/durata * (i+1));
+                const netValue = (tfrBase/durata * (i+1)) + (rendimento * (1 - pacBalTaxRate));
+                pacBalEvolution.push(netValue);
+            }
+
+            // CREAZIONE SUMMARY
+            const summaryHTML = `
+                <div class="comparison-result ${selectedScenarios['tfr-azienda'] ? '' : 'hidden'}">
+                    <h5>💼 TFR Azienda</h5>
+                    <div class="value">€${tfrNettoFinal.toLocaleString('it-IT', {maximumFractionDigits: 2})}</div>
+                    <div class="subtitle">Montante Netto Finale</div>
+                </div>
+
+                <div class="comparison-result ${selectedScenarios['pac-conservativo'] ? '' : 'hidden'} ${pacConsEvolution[durata-1] > tfrNettoFinal ? 'best' : ''}">
+                    <h5>📊 PAC Conservativo</h5>
+                    <div class="value">€${pacConsEvolution[durata-1].toLocaleString('it-IT', {maximumFractionDigits: 2})}</div>
+                    <div class="subtitle">Montante Netto Finale</div>
+                </div>
+
+                <div class="comparison-result ${selectedScenarios['pac-bilanciato'] ? '' : 'hidden'} ${pacBalEvolution[durata-1] > Math.max(tfrNettoFinal, pacConsEvolution[durata-1]) ? 'best' : ''}">
+                    <h5>⚖️ PAC Bilanciato</h5>
+                    <div class="value">€${pacBalEvolution[durata-1].toLocaleString('it-IT', {maximumFractionDigits: 2})}</div>
+                    <div class="subtitle">Montante Netto Finale</div>
+                </div>
+            `;
+
+            document.getElementById('tfr-summary').innerHTML = summaryHTML;
+
+            // CHART LINEA
+            const ctx = document.getElementById('tfrComparisonChart').getContext('2d');
+
+            if (tfrChart) tfrChart.destroy();
+
+            const chartData = {
+                labels: Array.from({length: durata}, (_, i) => `Anno ${i+1}`),
+                datasets: []
+            };
+
+            if (selectedScenarios['tfr-azienda']) {
+                chartData.datasets.push({
+                    label: 'TFR Azienda (Netto)',
+                    data: tfrNettoEvolution,
+                    borderColor: '#DC143C',
+                    backgroundColor: 'rgba(220, 20, 60, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                });
+            }
+
+            if (selectedScenarios['pac-conservativo']) {
+                chartData.datasets.push({
+                    label: 'PAC Conservativo (Netto)',
+                    data: pacConsEvolution,
+                    borderColor: '#0066CC',
+                    backgroundColor: 'rgba(0, 102, 204, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                });
+            }
+
+            if (selectedScenarios['pac-bilanciato']) {
+                chartData.datasets.push({
+                    label: 'PAC Bilanciato (Netto)',
+                    data: pacBalEvolution,
+                    borderColor: '#28A745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                });
+            }
+
+            tfrChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Evoluzione del Montante Netto nel Tempo',
+                            font: { size: 14, weight: 'bold' }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '€' + value.toLocaleString('it-IT', {maximumFractionDigits: 0});
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // CHART BREAKDOWN
+            const ctxBreakdown = document.getElementById('tfrBreakdownChart').getContext('2d');
+
+            if (tfrBreakdownChart) tfrBreakdownChart.destroy();
+
+            const breakdownData = {
+                labels: [],
+                datasets: []
+            };
+
+            if (selectedScenarios['tfr-azienda']) {
+                breakdownData.labels.push('TFR Azienda');
+                breakdownData.datasets.push({
+                    label: 'Montante Netto',
+                    data: [tfrNettoFinal],
+                    backgroundColor: '#DC143C'
+                });
+            }
+
+            if (selectedScenarios['pac-conservativo']) {
+                breakdownData.labels.push('PAC Conservativo');
+                breakdownData.datasets.push({
+                    label: 'Montante Netto',
+                    data: [pacConsEvolution[durata-1]],
+                    backgroundColor: '#0066CC'
+                });
+            }
+
+            if (selectedScenarios['pac-bilanciato']) {
+                breakdownData.labels.push('PAC Bilanciato');
+                breakdownData.datasets.push({
+                    label: 'Montante Netto',
+                    data: [pacBalEvolution[durata-1]],
+                    backgroundColor: '#28A745'
+                });
+            }
+
+            tfrBreakdownChart = new Chart(ctxBreakdown, {
+                type: 'bar',
+                data: {
+                    labels: breakdownData.labels,
+                    datasets: [{
+                        label: 'Montante Netto Finale (€)',
+                        data: breakdownData.datasets.map(d => d.data[0]),
+                        backgroundColor: breakdownData.datasets.map(d => d.backgroundColor),
+                        borderColor: breakdownData.datasets.map(d => d.backgroundColor),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    indexAxis: 'x',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '€' + value.toLocaleString('it-IT', {maximumFractionDigits: 0});
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // TABELLA
+            const tableBody = document.getElementById('tfr-comparison-table').querySelector('tbody');
+            tableBody.innerHTML = '';
+
+            for (let i = 0; i < durata; i++) {
+                const maxValue = Math.max(
+                    selectedScenarios['tfr-azienda'] ? tfrNettoEvolution[i] : 0,
+                    selectedScenarios['pac-conservativo'] ? pacConsEvolution[i] : 0,
+                    selectedScenarios['pac-bilanciato'] ? pacBalEvolution[i] : 0
+                );
+
+                const tfrDisplay = selectedScenarios['tfr-azienda'] ? `€${tfrNettoEvolution[i].toLocaleString('it-IT', {maximumFractionDigits: 2})}` : '-';
+                const pacConsDisplay = selectedScenarios['pac-conservativo'] ? `€${pacConsEvolution[i].toLocaleString('it-IT', {maximumFractionDigits: 2})}` : '-';
+                const pacBalDisplay = selectedScenarios['pac-bilanciato'] ? `€${pacBalEvolution[i].toLocaleString('it-IT', {maximumFractionDigits: 2})}` : '-';
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>Anno ${i+1}</strong></td>
+                    <td>${tfrDisplay}</td>
+                    <td>${pacConsDisplay}</td>
+                    <td>${pacBalDisplay}</td>
+                    <td>-</td>
+                `;
+                tableBody.appendChild(row);
+            }
+
+            document.getElementById('tfr-results').style.display = 'block';
+        }
+
+        function resetTFR() {
+            document.getElementById('tfr-stipendio').value = '35000';
+            document.getElementById('tfr-anni').value = '15';
+            document.getElementById('tfr-inflazione').value = '2.0';
+            document.getElementById('tfr-durata').value = '15';
+            document.getElementById('tfr-results').style.display = 'none';
+        }
+
+        // EXPORT FUNCTIONS
+        function exportToCSV(type) {
+            alert('Export CSV: Funzionalità in sviluppo');
+        }
+
+        function exportToJSON(type) {
+            alert('Export JSON: Funzionalità in sviluppo');
+        }
+    </script>
+</body>
+</html>
